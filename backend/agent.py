@@ -45,7 +45,7 @@ MISSING_KEY_MESSAGE = (
 def _system_prompt() -> str:
     if PROMPT_PATH.exists():
         return PROMPT_PATH.read_text(encoding="utf-8")
-    return "You are the Yale SOM course assistant. Never invent course details."
+    return "You are the Yale course assistant. Never invent course details."
 
 
 def build_agent() -> Agent:
@@ -162,7 +162,7 @@ def run_agent(message: str) -> dict:
     question = (message or "").strip()
 
     if not question:
-        return AgentResult(reply="Ask me something about the Yale SOM catalog.").as_dict()
+        return AgentResult(reply="Ask me something about the Yale course catalog.").as_dict()
 
     if not os.getenv("PORTKEY_API_KEY"):
         _append_audit(

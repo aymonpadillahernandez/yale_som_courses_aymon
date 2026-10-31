@@ -4,3 +4,4 @@ __pycache__/
 node_modules/
 *.zip
 *.db
+output/audit_trail*.json

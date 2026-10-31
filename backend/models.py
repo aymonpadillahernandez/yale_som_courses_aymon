@@ -1,7 +1,8 @@
-"""Pydantic models for the Yale SOM course explorer.
+"""Pydantic models for the Yale course explorer.
 
-Field aliases match the exact keys in data/yale_som_classes.json, so a raw row
-validates with Course.model_validate(row) and nothing has to be renamed by hand.
+Field aliases match the exact keys in data/yale_courses.json (the SOM listing's
+keys plus School fields), so a raw row validates with Course.model_validate(row)
+and nothing has to be renamed by hand.
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class Course(BaseModel):
-    """One row of data/yale_som_classes.json."""
+    """One row of data/yale_courses.json."""
 
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 
@@ -46,11 +47,23 @@ class Course(BaseModel):
     old_syllabus: str = Field(default="", alias="Old Syllabus")
     visible: str = Field(default="", alias="Visible")
 
+    school: str = Field(default="School of Management", alias="School")
+    school_code: str = Field(default="MG", alias="School Code")
+    subject: str = Field(default="", alias="Subject")
+    same_as: str = Field(default="", alias="Same As")
+    source_url: str = Field(default="", alias="Source URL")
+    sections: int = Field(default=1, alias="Sections")
+
     def haystack(self) -> str:
-        """Everything a text query may legitimately match against."""
+        """Everything a text query may legitimately match against.
+
+        School and units stay out: school is its own filter, and "Yale College"
+        or "Arts & Sciences" would otherwise match thousands of rows.
+        """
         return " ".join(
             [
                 self.number,
+                self.same_as,
                 self.title,
                 self.category,
                 self.course_type,
@@ -62,7 +75,6 @@ class Course(BaseModel):
                 self.end_time,
                 self.room,
                 self.session,
-                self.units,
                 self.bid_or_permission,
                 self.description,
                 self.faculty_bio,
@@ -74,7 +86,9 @@ class Course(BaseModel):
         desc = " ".join(self.description.split())
         bio = " ".join(self.faculty_bio.split())
         return {
+            "school": self.school,
             "number": self.number,
+            "same_as": self.same_as,
             "title": self.title,
             "category": self.category,
             "faculty": self.faculty,
@@ -83,8 +97,10 @@ class Course(BaseModel):
             "room": self.room,
             "units": self.units,
             "session": self.session,
+            "sections": self.sections,
             "bid_or_permission": self.bid_or_permission,
             "syllabus": self.syllabus or self.old_syllabus,
+            "course_search_url": self.source_url,
             "description": desc[:description_chars],
             "faculty_bio": bio[:description_chars],
         }

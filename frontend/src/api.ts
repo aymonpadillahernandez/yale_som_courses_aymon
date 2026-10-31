@@ -1,7 +1,7 @@
 // Calls the FastAPI backend. On Render, VITE_API_URL is set at build time.
 export const API_BASE = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
-// Keys match the raw rows in data/yale_som_classes.json, which /api/courses returns as-is.
+// Keys match the raw rows in data/yale_courses.json, which /api/courses returns as-is.
 export interface Course {
   "Course ID": string;
   "Course Number": string;
@@ -27,11 +27,41 @@ export interface Course {
   "Old Syllabus": string;
   TermCode: string;
   Visible: string;
+  School: string;
+  "School Code": string;
+  Subject: string;
+  "Same As": string;
+  "Source URL": string;
+  Sections?: number;
 }
 
 export interface CoursesResponse {
   count: number;
+  total: number;
+  offset: number;
+  limit: number;
   courses: Course[];
+}
+
+export interface School {
+  code: string;
+  name: string;
+  count: number;
+  categories: string[];
+}
+
+export interface SchoolsResponse {
+  term: string;
+  total: number;
+  schools: School[];
+}
+
+export interface CourseFilters {
+  q?: string;
+  school?: string;
+  category?: string;
+  offset?: number;
+  limit?: number;
 }
 
 export interface ChatResponse {
@@ -47,9 +77,18 @@ async function getJson<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function fetchCourses(query?: string): Promise<CoursesResponse> {
-  const suffix = query && query.trim() ? `?q=${encodeURIComponent(query.trim())}` : "";
+export function fetchCourses(filters: CourseFilters = {}): Promise<CoursesResponse> {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    const text = String(value ?? "").trim();
+    if (text && text !== "All") params.set(key, text);
+  });
+  const suffix = params.toString() ? `?${params}` : "";
   return getJson<CoursesResponse>(`/api/courses${suffix}`);
+}
+
+export function fetchSchools(): Promise<SchoolsResponse> {
+  return getJson<SchoolsResponse>("/api/schools");
 }
 
 export function fetchHealth(): Promise<{ ok: boolean; courses_file: string }> {

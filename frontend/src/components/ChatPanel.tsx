@@ -14,9 +14,9 @@ const TOOL_LABELS: Record<string, string> = {
 };
 
 const SUGGESTIONS = [
-  "Which courses meet on Tuesday?",
-  "Who teaches operations?",
-  "Show me the PhD courses",
+  "Which SOM electives meet on Tuesday?",
+  "Machine learning courses outside SOM",
+  "Climate courses at the School of the Environment",
 ];
 
 export default function ChatPanel() {
@@ -74,7 +74,7 @@ export default function ChatPanel() {
       <div className="chat-log" ref={logRef}>
         {turns.length === 0 && !busy && (
           <div className="chat-empty">
-            <p>Ask about courses, faculty or meeting times.</p>
+            <p>Ask about courses in any Yale school, their faculty or meeting times.</p>
             <ul>
               {SUGGESTIONS.map((s) => (
                 <li key={s}>
@@ -129,7 +129,7 @@ export default function ChatPanel() {
         <input
           id="chat-input"
           value={draft}
-          placeholder="Which electives meet on Wednesday?"
+          placeholder="Which AI courses meet on Wednesday?"
           onChange={(event) => {
             setDraft(event.target.value);
             if (error) setError("");
